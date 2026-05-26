@@ -1,10 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { FlagResponse } from '@/types';
+import type { Environment, FlagResponse } from '@/types';
 
-export async function GET() {
+const validEnvironments: Environment[] = ['development', 'production'];
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const env = searchParams.get('env');
+
+  const environment: Environment = env ? (env as Environment) : 'production';
+
+  if (env && !validEnvironments.includes(env as Environment)) {
+    return NextResponse.json(
+      { error: `Invalid environment: ${env}. Must be 'development' or 'production'.` },
+      { status: 400 }
+    );
+  }
+
   const flags = await prisma.featureFlag.findMany({
-    where: { environment: 'production' },
+    where: { environment },
     select: { key: true, isEnabled: true },
   });
 
