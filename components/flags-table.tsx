@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { FeatureFlag } from "@/types";
 import {
   Table,
@@ -11,9 +12,30 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { toggleFlag } from "@/app/admin/actions";
 
 interface FlagsTableProps {
   flags: FeatureFlag[];
+}
+
+function FlagToggle({ flag }: { flag: FeatureFlag }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleToggle = () => {
+    startTransition(async () => {
+      await toggleFlag(flag.id);
+    });
+  };
+
+  return (
+    <Switch
+      checked={flag.isEnabled}
+      onCheckedChange={handleToggle}
+      disabled={isPending}
+      aria-label={`Toggle ${flag.name}`}
+    />
+  );
 }
 
 export function FlagsTable({ flags }: FlagsTableProps) {
@@ -34,6 +56,7 @@ export function FlagsTable({ flags }: FlagsTableProps) {
             <TableHead>Key</TableHead>
             <TableHead className="hidden md:table-cell">Description</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Toggle</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -53,6 +76,9 @@ export function FlagsTable({ flags }: FlagsTableProps) {
                 <Badge variant={flag.isEnabled ? "default" : "secondary"}>
                   {flag.isEnabled ? "Enabled" : "Disabled"}
                 </Badge>
+              </TableCell>
+              <TableCell>
+                <FlagToggle flag={flag} />
               </TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm">
