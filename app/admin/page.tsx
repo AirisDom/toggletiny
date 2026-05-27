@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { FlagsTable } from "@/components/flags-table";
+import { AddFlagDialog } from "@/components/add-flag-dialog";
 import type { Environment, FeatureFlag } from "@/types";
 
 interface AdminPageProps {
@@ -26,11 +27,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Feature Flags</h1>
-        <p className="text-muted-foreground">
-          Manage your feature flags across environments.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Feature Flags</h1>
+          <p className="text-muted-foreground">
+            Manage your feature flags across environments.
+          </p>
+        </div>
+        <AddFlagDialog defaultEnvironment={environment} />
       </div>
       <FlagsTable flags={flags} />
     </div>
