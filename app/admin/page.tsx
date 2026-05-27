@@ -1,4 +1,29 @@
-export default function AdminPage() {
+import { prisma } from "@/lib/prisma";
+import { FlagsTable } from "@/components/flags-table";
+import type { Environment, FeatureFlag } from "@/types";
+
+interface AdminPageProps {
+  searchParams: Promise<{ env?: string }>;
+}
+
+async function getFlags(environment: Environment): Promise<FeatureFlag[]> {
+  const flags = await prisma.featureFlag.findMany({
+    where: { environment },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return flags.map((flag) => ({
+    ...flag,
+    environment: flag.environment as Environment,
+  }));
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const params = await searchParams;
+  const environment: Environment =
+    params.env === "production" ? "production" : "development";
+  const flags = await getFlags(environment);
+
   return (
     <div className="space-y-6">
       <div>
@@ -7,9 +32,7 @@ export default function AdminPage() {
           Manage your feature flags across environments.
         </p>
       </div>
-      <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-        Feature flag table will go here
-      </div>
+      <FlagsTable flags={flags} />
     </div>
   );
 }

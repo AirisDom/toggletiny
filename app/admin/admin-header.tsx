@@ -1,26 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { Environment } from "@/types";
 
-function EnvironmentTabs({
-  currentEnv,
-  onEnvChange,
-}: {
-  currentEnv: Environment;
-  onEnvChange: (env: Environment) => void;
-}) {
+function EnvironmentTabs({ currentEnv }: { currentEnv: Environment }) {
   const environments: Environment[] = ["development", "production"];
 
   return (
     <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
       {environments.map((env) => (
-        <button
+        <Link
           key={env}
-          onClick={() => onEnvChange(env)}
+          href={`/admin?env=${env}`}
           className={cn(
             "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
             currentEnv === env
@@ -29,7 +22,7 @@ function EnvironmentTabs({
           )}
         >
           {env.charAt(0).toUpperCase() + env.slice(1)}
-        </button>
+        </Link>
       ))}
     </div>
   );
@@ -62,25 +55,14 @@ function Logo() {
 export function AdminHeader() {
   const searchParams = useSearchParams();
   const envParam = searchParams.get("env");
-  const [environment, setEnvironment] = useState<Environment>(
-    envParam === "production" ? "production" : "development"
-  );
-
-  const handleEnvChange = (env: Environment) => {
-    setEnvironment(env);
-    const url = new URL(window.location.href);
-    url.searchParams.set("env", env);
-    window.history.pushState({}, "", url);
-  };
+  const environment: Environment =
+    envParam === "production" ? "production" : "development";
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Logo />
-        <EnvironmentTabs
-          currentEnv={environment}
-          onEnvChange={handleEnvChange}
-        />
+        <EnvironmentTabs currentEnv={environment} />
       </div>
     </header>
   );
