@@ -91,3 +91,58 @@ export async function createFlag(input: CreateFlagInput): Promise<CreateFlagResu
   revalidatePath("/admin");
   return { success: true };
 }
+
+export type UpdateFlagInput = {
+  id: string;
+  name: string;
+  description: string;
+  isEnabled: boolean;
+};
+
+export type UpdateFlagResult = {
+  success: boolean;
+  errors?: {
+    name?: string;
+    description?: string;
+    general?: string;
+  };
+};
+
+export async function updateFlag(input: UpdateFlagInput): Promise<UpdateFlagResult> {
+  const errors: UpdateFlagResult["errors"] = {};
+
+  if (!input.name.trim()) {
+    errors.name = "Name is required";
+  }
+
+  if (!input.description.trim()) {
+    errors.description = "Description is required";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { success: false, errors };
+  }
+
+  const existing = await prisma.featureFlag.findUnique({
+    where: { id: input.id },
+  });
+
+  if (!existing) {
+    return {
+      success: false,
+      errors: { general: "Flag not found" },
+    };
+  }
+
+  await prisma.featureFlag.update({
+    where: { id: input.id },
+    data: {
+      name: input.name.trim(),
+      description: input.description.trim(),
+      isEnabled: input.isEnabled,
+    },
+  });
+
+  revalidatePath("/admin");
+  return { success: true };
+}

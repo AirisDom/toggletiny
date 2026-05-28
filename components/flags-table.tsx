@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import { Pencil } from "lucide-react";
 import { FeatureFlag } from "@/types";
 import {
   Table,
@@ -14,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toggleFlag } from "@/app/admin/actions";
+import { FlagDialog } from "@/components/flag-dialog";
 
 interface FlagsTableProps {
   flags: FeatureFlag[];
@@ -34,6 +36,25 @@ function FlagToggle({ flag }: { flag: FeatureFlag }) {
       onCheckedChange={handleToggle}
       disabled={isPending}
       aria-label={`Toggle ${flag.name}`}
+    />
+  );
+}
+
+function EditFlagButton({ flag }: { flag: FeatureFlag }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <FlagDialog
+      mode="edit"
+      flag={flag}
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
+      }
     />
   );
 }
@@ -81,9 +102,7 @@ export function FlagsTable({ flags }: FlagsTableProps) {
                 <FlagToggle flag={flag} />
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="sm">
-                  Edit
-                </Button>
+                <EditFlagButton flag={flag} />
               </TableCell>
             </TableRow>
           ))}
