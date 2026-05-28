@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toggleFlag } from "@/app/admin/actions";
 import { FlagDialog } from "@/components/flag-dialog";
+import { DeleteFlagDialog } from "@/components/delete-flag-dialog";
 
 interface FlagsTableProps {
   flags: FeatureFlag[];
@@ -102,7 +103,10 @@ export function FlagsTable({ flags }: FlagsTableProps) {
                 <FlagToggle flag={flag} />
               </TableCell>
               <TableCell className="text-right">
-                <EditFlagButton flag={flag} />
+                <div className="flex justify-end gap-2">
+                  <EditFlagButton flag={flag} />
+                  <DeleteFlagDialog flag={flag} />
+                </div>
               </TableCell>
             </TableRow>
           ))}

@@ -146,3 +146,25 @@ export async function updateFlag(input: UpdateFlagInput): Promise<UpdateFlagResu
   revalidatePath("/admin");
   return { success: true };
 }
+
+export type DeleteFlagResult = {
+  success: boolean;
+  error?: string;
+};
+
+export async function deleteFlag(id: string): Promise<DeleteFlagResult> {
+  const existing = await prisma.featureFlag.findUnique({
+    where: { id },
+  });
+
+  if (!existing) {
+    return { success: false, error: "Flag not found" };
+  }
+
+  await prisma.featureFlag.delete({
+    where: { id },
+  });
+
+  revalidatePath("/admin");
+  return { success: true };
+}
