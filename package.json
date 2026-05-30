@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-api-key": "npx tsx scripts/generate-api-key.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ToggleTiny
+
+A minimalist, self-hosted feature flag management dashboard for indie developers and small teams.
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Set up the database
+
+```bash
+npx prisma migrate dev
+npm run seed
+```
+
+### 3. Generate an API key
+
+```bash
+npm run generate-api-key
+```
+
+This creates an `API_KEY` in your `.env` file for securing the consumption API.
+
+### 4. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to access the admin dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Authentication
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The `/api/flags` endpoint requires API key authentication. Pass your key using one of these methods:
+
+### Option 1: Authorization Header (Bearer Token)
+
+```bash
+curl -H "Authorization: Bearer tt_your_api_key_here" \
+  http://localhost:3000/api/flags
+```
+
+### Option 2: x-api-key Header
+
+```bash
+curl -H "x-api-key: tt_your_api_key_here" \
+  http://localhost:3000/api/flags
+```
+
+### Response Codes
+
+- `200 OK` - Success with flags JSON
+- `401 Unauthorized` - Missing or invalid API key
+- `400 Bad Request` - Invalid environment parameter
+
+### Example Usage in React
+
+```typescript
+const response = await fetch('https://your-toggletiny.com/api/flags', {
+  headers: {
+    'Authorization': `Bearer ${process.env.TOGGLETINY_API_KEY}`
+  }
+});
+const flags = await response.json();
+// { "new-checkout-btn": true, "beta-dashboard": false }
+```
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | SQLite database path |
+| `ADMIN_PASSWORD` | Password for admin dashboard login |
+| `API_KEY` | API key for consumption endpoint authentication |
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)

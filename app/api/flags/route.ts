@@ -4,7 +4,32 @@ import type { Environment, FlagResponse } from '@/types';
 
 const validEnvironments: Environment[] = ['development', 'production'];
 
+function validateApiKey(request: NextRequest): boolean {
+  const expectedKey = process.env.API_KEY;
+  if (!expectedKey) return true;
+
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    return token === expectedKey;
+  }
+
+  const xApiKey = request.headers.get('x-api-key');
+  if (xApiKey) {
+    return xApiKey === expectedKey;
+  }
+
+  return false;
+}
+
 export async function GET(request: NextRequest) {
+  if (!validateApiKey(request)) {
+    return NextResponse.json(
+      { error: 'Unauthorized. Provide a valid API key via Authorization: Bearer <key> or x-api-key header.' },
+      { status: 401 }
+    );
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const env = searchParams.get('env');
 
