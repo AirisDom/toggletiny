@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { Environment } from "@/types";
 
 function EnvironmentTabs({ currentEnv }: { currentEnv: Environment }) {
@@ -53,16 +55,29 @@ function Logo({ environment }: { environment: Environment }) {
 }
 
 export function AdminHeader() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const envParam = searchParams.get("env");
   const environment: Environment =
     envParam === "production" ? "production" : "development";
 
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Logo environment={environment} />
-        <EnvironmentTabs currentEnv={environment} />
+        <div className="flex items-center gap-4">
+          <EnvironmentTabs currentEnv={environment} />
+          <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
+        </div>
       </div>
     </header>
   );
