@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import { Plus, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -131,8 +132,12 @@ export function FlagDialog({
         if (result.success) {
           setOpen(false);
           resetForm();
+          toast.success("Flag created successfully");
         } else {
           setErrors(result.errors || {});
+          if (result.errors?.general) {
+            toast.error(result.errors.general);
+          }
         }
       } else if (mode === "edit" && flag) {
         const result: UpdateFlagResult = await updateFlag({
@@ -144,8 +149,12 @@ export function FlagDialog({
 
         if (result.success) {
           setOpen(false);
+          toast.success("Flag updated successfully");
         } else {
           setErrors(result.errors || {});
+          if (result.errors?.general) {
+            toast.error(result.errors.general);
+          }
         }
       }
     });

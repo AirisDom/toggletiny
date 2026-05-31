@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,8 +32,11 @@ export function DeleteFlagDialog({ flag }: DeleteFlagDialogProps) {
       const result = await deleteFlag(flag.id);
       if (result.success) {
         setOpen(false);
+        toast.success(`Flag "${flag.name}" deleted`);
       } else {
-        setError(result.error || "Failed to delete flag");
+        const errorMsg = result.error || "Failed to delete flag";
+        setError(errorMsg);
+        toast.error(errorMsg);
       }
     });
   };

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { FeatureFlag } from "@/types";
 import {
   Table,
@@ -27,7 +28,12 @@ function FlagToggle({ flag }: { flag: FeatureFlag }) {
 
   const handleToggle = () => {
     startTransition(async () => {
-      await toggleFlag(flag.id);
+      const result = await toggleFlag(flag.id);
+      if (result.success) {
+        toast.success(`Flag "${flag.name}" ${flag.isEnabled ? "disabled" : "enabled"}`);
+      } else {
+        toast.error(result.error || "Failed to toggle flag");
+      }
     });
   };
 
