@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Pencil } from "lucide-react";
+import { useState, useTransition, useMemo } from "react";
+import { Pencil, Search } from "lucide-react";
 import { toast } from "sonner";
 import { FeatureFlag } from "@/types";
 import {
@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { toggleFlag } from "@/app/admin/actions";
 import { FlagDialog } from "@/components/flag-dialog";
 import { DeleteFlagDialog } from "@/components/delete-flag-dialog";
@@ -67,6 +68,18 @@ function EditFlagButton({ flag }: { flag: FeatureFlag }) {
 }
 
 export function FlagsTable({ flags }: FlagsTableProps) {
+  const [search, setSearch] = useState("");
+
+  const filteredFlags = useMemo(() => {
+    if (!search.trim()) return flags;
+    const query = search.toLowerCase();
+    return flags.filter(
+      (flag) =>
+        flag.name.toLowerCase().includes(query) ||
+        flag.key.toLowerCase().includes(query)
+    );
+  }, [flags, search]);
+
   if (flags.length === 0) {
     return (
       <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
@@ -76,48 +89,65 @@ export function FlagsTable({ flags }: FlagsTableProps) {
   }
 
   return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Key</TableHead>
-            <TableHead className="hidden md:table-cell">Description</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Toggle</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {flags.map((flag) => (
-            <TableRow key={flag.id}>
-              <TableCell className="font-medium">{flag.name}</TableCell>
-              <TableCell>
-                <code className="rounded bg-muted px-1.5 py-0.5 text-sm">
-                  {flag.key}
-                </code>
-              </TableCell>
-              <TableCell className="hidden max-w-xs truncate md:table-cell">
-                {flag.description}
-              </TableCell>
-              <TableCell>
-                <Badge variant={flag.isEnabled ? "default" : "secondary"}>
-                  {flag.isEnabled ? "Enabled" : "Disabled"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <FlagToggle flag={flag} />
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <EditFlagButton flag={flag} />
-                  <DeleteFlagDialog flag={flag} />
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search flags by name or key..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      {filteredFlags.length === 0 ? (
+        <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+          No flags found matching &quot;{search}&quot;
+        </div>
+      ) : (
+        <div className="rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Key</TableHead>
+                <TableHead className="hidden md:table-cell">Description</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Toggle</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredFlags.map((flag) => (
+                <TableRow key={flag.id}>
+                  <TableCell className="font-medium">{flag.name}</TableCell>
+                  <TableCell>
+                    <code className="rounded bg-muted px-1.5 py-0.5 text-sm">
+                      {flag.key}
+                    </code>
+                  </TableCell>
+                  <TableCell className="hidden max-w-xs truncate md:table-cell">
+                    {flag.description}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={flag.isEnabled ? "default" : "secondary"}>
+                      {flag.isEnabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <FlagToggle flag={flag} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <EditFlagButton flag={flag} />
+                      <DeleteFlagDialog flag={flag} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
