@@ -118,9 +118,13 @@ export default function DocsPage() {
                 <div>
                   <h4 className="font-medium mb-2">Response Headers</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Responses include caching headers for optimal performance:
+                    Responses include caching and validation headers for optimal performance:
                   </p>
-                  <CodeBlock>Cache-Control: public, s-maxage=60, stale-while-revalidate=30</CodeBlock>
+                  <div className="space-y-3">
+                    <CodeBlock>Cache-Control: public, max-age=10, s-maxage=60, stale-while-revalidate=300</CodeBlock>
+                    <CodeBlock>ETag: "abc123..."</CodeBlock>
+                    <CodeBlock>Vary: Accept-Encoding</CodeBlock>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -282,6 +286,84 @@ function MyComponent() {
             </div>
           </Section>
 
+          <Section title="Caching & Performance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Response Caching</CardTitle>
+                <CardDescription>
+                  The API is optimized for high performance with CDN caching and conditional requests.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-medium mb-2">Cache-Control Directives</h4>
+                  <div className="rounded-lg border">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="text-left p-3 font-medium">Directive</th>
+                          <th className="text-left p-3 font-medium">Value</th>
+                          <th className="text-left p-3 font-medium">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-3 font-mono text-xs">public</td>
+                          <td className="p-3">-</td>
+                          <td className="p-3 text-muted-foreground">Response can be cached by browsers and CDNs</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3 font-mono text-xs">max-age</td>
+                          <td className="p-3">10 seconds</td>
+                          <td className="p-3 text-muted-foreground">Browser cache freshness duration</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3 font-mono text-xs">s-maxage</td>
+                          <td className="p-3">60 seconds</td>
+                          <td className="p-3 text-muted-foreground">CDN/shared cache freshness duration</td>
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-mono text-xs">stale-while-revalidate</td>
+                          <td className="p-3">300 seconds</td>
+                          <td className="p-3 text-muted-foreground">Serve stale content while fetching fresh data in background</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Conditional Requests with ETag</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    The API supports conditional requests using ETags. Send the <code className="text-xs bg-muted px-1.5 py-0.5 rounded">If-None-Match</code> header
+                    with the ETag value from a previous response. If the data hasn&apos;t changed, you&apos;ll receive a <code className="text-xs bg-muted px-1.5 py-0.5 rounded">304 Not Modified</code> response
+                    with no body, saving bandwidth.
+                  </p>
+                  <CodeBlock title="Conditional request example">{`# First request - get ETag from response headers
+curl -I "https://your-domain.com/api/flags" \\
+  -H "Authorization: Bearer your-api-key"
+# Response includes: ETag: "a1b2c3d4..."
+
+# Subsequent request - use ETag for conditional fetch
+curl -X GET "https://your-domain.com/api/flags" \\
+  -H "Authorization: Bearer your-api-key" \\
+  -H "If-None-Match: \\"a1b2c3d4...\\""
+# Returns 304 Not Modified if unchanged, 200 with new data otherwise`}</CodeBlock>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Recommended Client Caching Strategy</h4>
+                  <p className="text-sm text-muted-foreground">
+                    For optimal performance, consider implementing a local cache in your application that respects the
+                    Cache-Control headers. Poll the API periodically (e.g., every 30-60 seconds) using conditional requests
+                    to minimize bandwidth while keeping flags up-to-date. The <code className="text-xs bg-muted px-1.5 py-0.5 rounded">stale-while-revalidate</code> directive
+                    ensures fast responses even when the cache needs refreshing.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
+
           <Section title="Error Responses">
             <Card>
               <CardHeader>
@@ -307,6 +389,13 @@ function MyComponent() {
                         </td>
                         <td className="p-3">Success</td>
                         <td className="p-3 font-mono text-xs">{`{ "flag-key": true, ... }`}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-3">
+                          <Badge variant="secondary">304</Badge>
+                        </td>
+                        <td className="p-3">Not Modified (ETag matched)</td>
+                        <td className="p-3 font-mono text-xs text-muted-foreground">No body</td>
                       </tr>
                       <tr className="border-b">
                         <td className="p-3">

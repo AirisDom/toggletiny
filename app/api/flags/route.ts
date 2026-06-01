@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { Environment, FlagResponse } from '@/types';
@@ -20,6 +21,11 @@ function validateApiKey(request: NextRequest): boolean {
   }
 
   return false;
+}
+
+function generateETag(data: FlagResponse): string {
+  const hash = createHash('md5').update(JSON.stringify(data)).digest('hex');
+  return `"${hash}"`;
 }
 
 export async function GET(request: NextRequest) {
@@ -52,9 +58,24 @@ export async function GET(request: NextRequest) {
     response[flag.key] = flag.isEnabled;
   }
 
+  const etag = generateETag(response);
+  const ifNoneMatch = request.headers.get('if-none-match');
+
+  if (ifNoneMatch === etag) {
+    return new NextResponse(null, {
+      status: 304,
+      headers: {
+        'ETag': etag,
+        'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=300',
+      },
+    });
+  }
+
   return NextResponse.json(response, {
     headers: {
-      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+      'ETag': etag,
+      'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=300',
+      'Vary': 'Accept-Encoding',
     },
   });
 }
